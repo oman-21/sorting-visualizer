@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting-Visualizer</title>
+    <link rel="stylesheet" href="stylesheet.css"> 
+</head>
+<body>
+<div class="horizontal_line"><h1>Sorting-Visualizer</h1></div>
+
+<div class="array_limit"> <!-- array size and slider :) -->
+     <label for="size_slider">Array Size:<span id="size_value">30</span><br> </label>
+     <input type="range" id="size_slider" min="5" max="100" step="5" value="30" oninput="updateSize(this.value)">
+</div>
+
+<div class="controls_of_algo">
+    <label for="algo_select">Choose Algorithm 😁</label>
+    <select id="algo_select" onchange="updateAlgo(this.value)">
+    <option value="bubble">Bubble sort</option>
+    <option value="selection">Selection Sort</option>
+    <option value="insertion">Insertion Sort</option>        
+    <option value="merge">Merge Sort</option>
+    <option value="quick">Quick Sort</option>
+    <option value="heap">Heap Sort</option>
+    </select>
+</div>
+
+<div id="array_holder"></div>
+
+ <div id="button_container">
+    <button class="button_generate_array" onclick="generateArray()">Generate Array</button>   
+    <button class="sort_array" onclick="startSorting()">Sort</button>
+    <button class="stop_array" onclick="stopSort()">Stop</button>
+   </div>
+
+    <div><h3>Algorithm Definition :</h3></div>
+
+   <div id="algo_definition"></div>
+
+ <script>
+    const array_holder = document.getElementById("array_holder");
+    const sizeSlider =  document.getElementById("size_slider");
+    const sizeValue = document.getElementById("size_value");
+
+    let arraySize = parseInt(sizeSlider.value);
+    let array = [];
+
+    let currentAlgo = "bubble";
+
+    function updateAlgo(value){
+        currentAlgo = value;
+        console.log("selected algorithm:",currentAlgo);
+    }
+
+    function updateSize(value){    
+        arraySize = parseInt(value);      
+        sizeValue.textContent = value;
+        generateArray(arraySize);
+    }
+    
+    function generateArray(size = arraySize) {
+        array = [];
+        for(let i=0; i < size; i++){
+            array.push(Math.floor(Math.random()*300));
+        }
+        drawArray(array);
+    }    
+
+    function drawArray(array, colors = []){
+           array_holder.innerHTML="";
+           array.forEach((value,idx) => {
+           const bar = document.createElement("div");
+           bar.classList.add("bar");
+           bar.style.height = value + "px";
+           bar.style.background = colors[idx] || "grey";
+           array_holder.appendChild(bar);
+           });
+    }    
+
+    function sleep(ms){
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    let stopSorting = false;
+
+    function stopSort(){
+        stopSorting = true;
+    }
+
+    async function startSorting(){
+        stopSorting = false;
+        if(currentAlgo === "bubble"){
+           await bubbleSort();
+        } else if(currentAlgo === "selection"){
+           await selectionSort();
+        } else if (currentAlgo === "insertion") {
+            await insertionSort();
+        } else if (currentAlgo === "merge") {
+            await mergeSort();
+        } else if (currentAlgo === "quick") {
+            await quickSort();
+        } else if (currentAlgo === "heap") {
+            await heapSort();
+        }
+        
+    }
+
+    async function bubbleSort(){
+        let n=array.length;
+        for(let i =0; i<n; i++){
+            for(let j=0; j<n-i-1; j++){
+                if(stopSorting) return;
+                let colors = Array(n).fill("grey");
+                colors[j]="red";
+                colors[j+1]= "red";
+                drawArray(array,colors);
+                await sleep(80);
+
+                if (array[j]> array[j+1]){
+                    [array[j],array[j+1]]= [array[j+1],array[j]];
+                    drawArray(array,colors);
+                    await sleep(80);
+                }
+            }
+
+            let colors =Array(n).fill("grey");
+            for(let k=n-i; k<n; k++) colors[k] = "green";
+            drawArray(array,colors);
+        }
+    }
+
+    async function selectionSort() {
+    let n = array.length;
+
+    for (let i = 0; i < n - 1; i++) {
+        if (stopSorting) return;
+
+        let minIndex = i;
+
+        for (let j = i + 1; j < n; j++) {
+            if (stopSorting) return;
+
+            let colors = Array(n).fill("grey");
+            for (let k = 0; k < i; k++) colors[k] = "green"; // already sorted
+            colors[i] = "blue";          // current outer index
+            colors[minIndex] = "orange"; // current minimum
+            colors[j] = "red";           // comparing element
+            drawArray(array, colors);
+            await sleep(100);
+
+            if (array[j] < array[minIndex]) {
+                minIndex = j;
+
+                
+                colors = Array(n).fill("grey");
+                for (let k = 0; k < i; k++) colors[k] = "green";
+                colors[i] = "blue";
+                colors[minIndex] = "orange";
+                drawArray(array, colors);
+                await sleep(100);
+            }
+        }
+
+        if (minIndex !== i) {
+            [array[i], array[minIndex]] = [array[minIndex], array[i]];
+        }
+
+       
+        let colors = Array(n).fill("grey");
+        for (let k = 0; k <= i; k++) colors[k] = "green";
+        drawArray(array, colors);
+        await sleep(150);
+    }
+
+    
+    let colors = Array(n).fill("green");
+    drawArray(array, colors);
+    }
+
+    async function insertionSort() {
+    let n = array.length;
+
+    for (let i = 1; i < n; i++) {
+        if (stopSorting) return;
+
+        let key = array[i];
+        let j = i - 1;
+
+        while (j >= 0 && array[j] > key) {
+            if (stopSorting) return;
+
+            array[j + 1] = array[j];
+
+            let colors = Array(n).fill("grey");
+            colors[i] = "blue";   // current key
+            colors[j] = "red";    // comparing element
+            drawArray(array, colors);
+            await sleep(150);
+
+            j--;
+        }
+
+        array[j + 1] = key;
+
+        let colors = Array(n).fill("grey");
+        for (let k = 0; k <= i; k++) colors[k] = "green";
+        drawArray(array, colors);
+        await sleep(150);
+    }
+
+    drawArray(array, Array(n).fill("green"));
+    }
+
+    async function mergeSort(arr = array, l = 0, r = array.length - 1) {
+    if (l >= r || stopSorting) return;
+
+    let m = Math.floor((l + r) / 2);
+    await mergeSort(arr, l, m);
+    await mergeSort(arr, m + 1, r);
+    await merge(arr, l, m, r);
+    }
+
+    async function merge(arr, l, m, r) {
+    let n1 = m - l + 1;
+    let n2 = r - m;
+
+    let left = arr.slice(l, m + 1);
+    let right = arr.slice(m + 1, r + 1);
+
+    let i = 0, j = 0, k = l;
+
+    while (i < n1 && j < n2) {
+        if (stopSorting) return;
+
+        let colors = Array(array.length).fill("grey");
+        colors[k] = "red"; // current position
+        drawArray(array, colors);
+        await sleep(150);
+
+        if (left[i] <= right[j]) {
+            arr[k++] = left[i++];
+        } else {
+            arr[k++] = right[j++];
+        }
+    }
+
+    while (i < n1) arr[k++] = left[i++];
+    while (j < n2) arr[k++] = right[j++];
+
+    let colors = Array(array.length).fill("grey");
+    for (let t = l; t <= r; t++) colors[t] = "green";
+    drawArray(array, colors);
+    await sleep(150);
+    }
+
+    async function quickSort(arr = array, low = 0, high = array.length - 1) {
+    if (stopSorting) return;
+
+    if (low < high) {
+        let pi = await partition(arr, low, high);
+
+        let colors = Array(arr.length).fill("grey");
+        colors[pi] = "green";
+        drawArray(arr, colors);
+        await sleep(150);
+
+        await quickSort(arr, low, pi - 1);
+        await quickSort(arr, pi + 1, high);
+    } else if (low === high) {
+        let colors = Array(arr.length).fill("grey");
+        colors[low] = "green";
+        drawArray(arr, colors);
+        await sleep(100);
+    }
+
+    if (low === 0 && high === arr.length - 1) {
+        let colors = Array(arr.length).fill("green");
+        drawArray(arr, colors);
+    }
+}
+
+    async function partition(arr, low, high) {
+    let pivot = arr[high];
+    let i = low - 1;
+
+    for (let j = low; j < high; j++) {
+        if (stopSorting) return;
+
+        let colors = Array(arr.length).fill("grey");
+        colors[high] = "orange";
+        colors[j] = "red";
+        drawArray(arr, colors);
+        await sleep(120);
+
+        if (arr[j] < pivot) {
+            i++;
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+    }
+
+    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+    return i + 1;
+}
+
+    async function heapSort() {
+    let n = array.length;
+
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+        await heapify(array, n, i);
+    }
+
+    for (let i = n - 1; i > 0; i--) {
+        if (stopSorting) return;
+
+        [array[0], array[i]] = [array[i], array[0]];
+
+        let colors = Array(n).fill("grey");
+        colors[i] = "green"; // sorted part
+        drawArray(array, colors);
+        await sleep(150);
+
+        await heapify(array, i, 0);
+    }
+
+    drawArray(array, Array(n).fill("green"));
+    }
+
+    async function heapify(arr, n, i) {
+    if (stopSorting) return;
+
+    let largest = i;
+    let l = 2 * i + 1;
+    let r = 2 * i + 2;
+
+    if (l < n && arr[l] > arr[largest]) largest = l;
+    if (r < n && arr[r] > arr[largest]) largest = r;
+
+    if (largest !== i) {
+        [arr[i], arr[largest]] = [arr[largest], arr[i]];
+
+        let colors = Array(array.length).fill("grey");
+        colors[i] = "orange";    // swapped root
+        colors[largest] = "red"; // child
+        drawArray(array, colors);
+        await sleep(150);
+
+        await heapify(arr, n, largest);
+    } 
+  }
+
+ // already declared that current algo is bubble-   // let currentAlgo = "bubble";
+        
+ const algoDefinition = {
+    bubble: `Bubble Sort repeatedly compares adjacent elements and swaps them if they are in the wrong order.<br>
+    Time Complexity: O(n²).<br>
+    Colors used:<br>
+    <span style="color:grey"> Grey </span> → Default color for unsorted elements.<br>
+    <span style="color:red">Red</span> → The two elements currently being compared.<br>
+    <span style="color:green">Green</span> → Elements that are already sorted (in their final position).`,
+
+
+    selection: `Selection Sort finds the minimum element and places it at the beginning, then repeats for the rest of the array.<br>
+    Time Complexity: O(n²).<br>
+    Colors used:<br>
+    <span style="color:grey">Grey</span> → Default (unsorted elements).<br>
+    <span style="color:blue">Blue</span> → Current outer loop index.<br>
+    <span style="color:orange">Orange</span> → Current minimum element.<br>
+    <span style="color:red">Red</span> → Comparing element.<br>
+    <span style="color:green">Green</span> → Sorted elements.`,
+    
+    insertion: `Insertion Sort builds the sorted array one element at a time by inserting elements into their correct position.<br>
+    Time Complexity: O(n²).<br>
+    Colors used:<br>
+    <span style="color:grey">Grey</span> → Default (unsorted elements).<br>
+    <span style="color:blue">Blue</span> → Current key being inserted.<br>
+    <span style="color:red">Red</span> → Element being compared with the key. <br>
+    <span style="color:green">Green </span>→ Sorted element (left side).`,  
+
+    merge: `Merge Sort is a divide-and-conquer algorithm that splits the array, sorts each half, and merges them.<br>
+    Time Complexity: O(n log n).<br>
+    Colors used:<br>
+    <span style="color:grey">Grey</span> → Default (unsorted elements).<br>
+    <span style ="color:red">Red</span> → Current element being merged.<br>
+    <span style=color:green>Green</span> → Elements that are in correct position after merge.`,
+
+    quick: `Quick Sort picks a pivot, partitions the array into two halves, and recursively sorts them.<br> 
+    Time Complexity: O(n log n) on average.<br>
+    Colors used:<br>
+    <span style="color:grey">Grey</span> → Default (unsorted elements).<br>
+    <span style="color:orange">Orange</span> → Pivot element.<br> 
+    <span style="color:red"> Red </span>→ Current element being compared with pivot.<br> 
+    <span style="color:green">Green</span> → Elements sorted (final position).`,   
+
+    heap: `Heap Sort builds a max heap and repeatedly extracts the maximum element. <br>
+    Time Complexity: O(n log n).<br>
+    <span style="color:grey">Grey</span> → Default (unsorted elements).<br> 
+    <span style="color:orange">Orange </span> → Root being swapped.<br>
+    <span style="color:red"> Red </span> → Child element being compared.<br> 
+    <span style="color:green"> Green </span> → Elements in the sorted part (final positions).`
+ }
+  
+ function updateAlgo(value){
+    currentAlgo = value;
+    document.getElementById("algo_definition").innerHTML = algoDefinition[value] || "definition not available."; 
+ }
+    generateArray(arraySize);
+    updateAlgo(currentAlgo);
+ </script>
+</body>
+</html>
